@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<style>
+div {
+    background-color: lightblue;
+}
+</style>
+</head>
+<body>
+<button id="getAll">Get All</button><br>
+<div>
+Name:<input type="text" id = "name"> <br>
+Description: <input type="text" id = "description"> <br>
+Street: <input type="text" id = "street"> <br>
+City: <input type="text" id = "city"> <br>
+State: <input type="text" id = "state"><br>
+Zip: <input type="text" id = "zip"><br>
+Location: X<input type="text" id="xLocation">Y<input type="text" id="yLocation"><br>
+Fees:<input type="text" id="fees"><br>
+Tags:<input type="text" id="tags"> 
+Rating<input type="text" id="rating"><br>
+<button id ="save">Save</button>
+</div>
+<span id="results"></span><br>
+<span id ="s1"></span>
+</body>
+<script>
+  $(document).ready(function(){
+    $("#getAll").click(function(){
+      alert("before");
+      var uri = "http://localhost:9200/schools/_search";
+      var query = { "query":{ "bool":{ "must":[{"match":{"city":"paprola"}}] } }, "sort":{ "fees":"asc" } };
+      $.ajax({
+        type: "POST",
+        url: uri,
+        data: JSON.stringify(query),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data){
+          alert("after");
+          console.log(JSON.stringify(data));
+          var result = data.hits.hits;
+          alert(result.length);
+          var size = result.length;
+          var s = "<br>";
+          for(var i=0;i<size;i++){
+        	  s += result[i]._source.street+" Street, "+result[i]._source.city+", "+result[i]._source.state+", zip:"+result[i]._source.zip+"<br>";
+          }
+          $("#s1").html(s);
+        },
+        failure: function(errMsg) {
+            alert(errMsg);
+        }
+    });
+    });
+
+    $("#save").click(function(){
+    	alert("save");
+        var school ={};
+        school.name = $("#name").val();
+        school.description = $("#description").val();
+        school.street = $("#street").val();
+        school.city = $("#city").val();
+        school.state = $("#state").val();
+        school.zip = $("#zip").val();
+        
+        var location = [];
+        if(!isNaN($("#xLocation").val()))
+        	location[0] = Number($("#xLocation").val());
+        else
+        	alert("please input number for location X");
+        if(!isNaN($("#yLocation").val()))
+        	location[1] = Number($("#yLocation").val());
+        else
+        	alert("please input number for location Y");
+        school.location = location;
+        if(!isNaN($("#fees").val()))       
+        	school.fees = Number($("#fees").val());
+        else
+        	alert("please input number for fees");
+        var tags = [];
+        tags[0] = $("#tags").val();
+        school.tags = tags;
+        
+        school.rating = $("#rating").val();
+        
+     
+        var json = JSON.stringify(school);
+
+	    console.log("------------------");
+		console.log(json);
+//        alert(json);
+		var uri = "http://localhost:9200/schools/school";
+		$.ajax({
+	        type: "POST",
+	        url: uri,
+	        data: json,
+	        contentType: "application/json; charset=utf-8",
+	        dataType: "json",
+	        success: function(data){
+	          alert("after");
+	          console.log(JSON.stringify(data));
+	        },
+	        failure: function(errMsg) {
+	            alert(errMsg);
+	        }
+	    });
+		
+    });
+  
+  });
+	
+</script>
+</html>
